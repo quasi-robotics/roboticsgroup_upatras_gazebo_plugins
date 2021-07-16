@@ -90,7 +90,7 @@ namespace gazebo {
                 name = "gazebo_ros_control/pid_gains/" + mimic_joint_name_;
             }
             auto nh = model_nh->create_sub_node(name);
-            pid_.init(nh);
+            pid_ = std::make_shared<control_toolbox::PidROS>(nh);
         }
 
         // Check for multiplier element
@@ -153,7 +153,7 @@ namespace gazebo {
     void MimicJointPlugin::UpdateChild()
     {
 #if GAZEBO_MAJOR_VERSION >= 8
-        static ros::Duration period(world_->Physics()->GetMaxStepSize());
+        static rclcpp::Duration period(world_->Physics()->GetMaxStepSize());
 #else
         static rclcpp::Duration period(world_->GetPhysicsEngine()->GetMaxStepSize());
 #endif
@@ -172,7 +172,7 @@ namespace gazebo {
                 if (a != a)
                     a = angle;
                 double error = angle - a;
-                double effort = math::clamp(pid_.computeCommand(error, period), -max_effort_, max_effort_);
+                double effort = math::clamp(pid_->computeCommand(error, period), -max_effort_, max_effort_);
                 mimic_joint_->SetForce(0, effort);
             }
             else {

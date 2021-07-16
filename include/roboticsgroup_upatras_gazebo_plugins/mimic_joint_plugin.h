@@ -27,7 +27,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 #include <rclcpp/rclcpp.hpp>
 
 // ros_control
-#include <control_toolbox/pid.hpp>
+#include <control_toolbox/pid_ros.hpp>
 
 // Gazebo includes
 #include <gazebo/common/Plugin.hh>
@@ -51,7 +51,7 @@ namespace gazebo {
         bool has_pid_;
 
         // PID controller if needed
-        control_toolbox::Pid pid_;
+        std::shared_ptr<control_toolbox::PidROS> pid_;
 
         // Pointers to the joints
         physics::JointPtr joint_, mimic_joint_;
