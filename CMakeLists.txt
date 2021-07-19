@@ -18,20 +18,22 @@ link_directories(
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 
-add_library(roboticsgroup_upatras_gazebo_mimic_joint_plugin src/mimic_joint_plugin.cpp)
+add_library(roboticsgroup_upatras_gazebo_mimic_joint_plugin SHARED src/mimic_joint_plugin.cpp)
 ament_target_dependencies(roboticsgroup_upatras_gazebo_mimic_joint_plugin
         gazebo_dev
         gazebo_ros
         rclcpp
         control_toolbox
         )
+ament_export_libraries(roboticsgroup_upatras_gazebo_mimic_joint_plugin)
 
-add_library(roboticsgroup_upatras_gazebo_disable_link_plugin src/disable_link_plugin.cpp)
+add_library(roboticsgroup_upatras_gazebo_disable_link_plugin SHARED src/disable_link_plugin.cpp)
 ament_target_dependencies(roboticsgroup_upatras_gazebo_disable_link_plugin
         gazebo_dev
         gazebo_ros
         rclcpp
         )
+ament_export_libraries(roboticsgroup_upatras_gazebo_disable_link_plugin)
 
 install(TARGETS
         roboticsgroup_upatras_gazebo_mimic_joint_plugin
@@ -44,5 +46,18 @@ install(TARGETS
 install(DIRECTORY include/${PROJECT_NAME}
         DESTINATION include/${PROJECT_NAME}
         )
+
+if(NOT WIN32)
+    if(NOT APPLE)
+        set(
+                AMENT_CMAKE_ENVIRONMENT_HOOKS_DESC_gazebo_plugins
+                "prepend-non-duplicate;LD_LIBRARY_PATH;${GAZEBO_PLUGIN_PATH}")
+    else()
+        set(
+                AMENT_CMAKE_ENVIRONMENT_HOOKS_DESC_gazebo_plugins
+                "prepend-non-duplicate;DYLD_LIBRARY_PATH;${GAZEBO_PLUGIN_PATH}")
+    endif()
+endif()
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/gazebo_plugins.sh.in")
 
 ament_package()

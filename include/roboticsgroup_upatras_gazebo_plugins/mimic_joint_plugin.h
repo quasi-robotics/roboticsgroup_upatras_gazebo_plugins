@@ -46,7 +46,7 @@ namespace gazebo {
         void UpdateChild();
 
         // Parameters
-        std::string joint_name_, mimic_joint_name_, robot_namespace_;
+        std::string joint_name_, mimic_joint_name_;
         double multiplier_, offset_, sensitiveness_, max_effort_;
         bool has_pid_;
 

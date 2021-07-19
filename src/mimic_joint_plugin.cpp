@@ -48,95 +48,95 @@ namespace gazebo {
         world_ = model_->GetWorld();
         auto node = gazebo_ros::Node::Get(_sdf);
 
-        // Error message if the model couldn't be found
-        if (!model_) {
-            RCLCPP_ERROR(node->get_logger(), "Parent model is NULL! MimicJointPlugin could not be loaded.");
-            return;
-        }
-
-        // Check that ROS has been initialized
-        if (!rclcpp::ok()) {
-            RCLCPP_ERROR(node->get_logger(), "A ROS node for Gazebo has not been initialized, unable to load plugin.");
-            return;
-        }
-
-        // Check for robot namespace
-        if (_sdf->HasElement("robot_namespace")) {
-            robot_namespace_ = _sdf->GetElement("robot_namespace")->Get<std::string>();
-        }
-        auto model_nh = rclcpp::Node::make_shared(robot_namespace_);
-
-        // Check for joint element
-        if (!_sdf->HasElement("joint")) {
-            RCLCPP_ERROR(node->get_logger(), "No joint element present. MimicJointPlugin could not be loaded.");
-            return;
-        }
-
-        joint_name_ = _sdf->GetElement("joint")->Get<std::string>();
-
-        // Check for mimicJoint element
-        if (!_sdf->HasElement("mimic_joint")) {
-            RCLCPP_ERROR(node->get_logger(), "No mimicJoint element present. MimicJointPlugin could not be loaded.");
-            return;
-        }
-
-        mimic_joint_name_ = _sdf->GetElement("mimic_joint")->Get<std::string>();
-
-        // Check if PID controller wanted
-        has_pid_ = _sdf->HasElement("has_pid");
-        if (has_pid_) {
-            std::string name = _sdf->GetElement("has_pid")->Get<std::string>();
-            if (name.empty()) {
-                name = "gazebo_ros_control/pid_gains/" + mimic_joint_name_;
+        try {
+            // Error message if the model couldn't be found
+            if (!model_) {
+                RCLCPP_ERROR(node->get_logger(), "Parent model is NULL! MimicJointPlugin could not be loaded.");
+                return;
             }
-            auto nh = model_nh->create_sub_node(name);
-            pid_ = std::make_shared<control_toolbox::PidROS>(nh);
+
+            // Check that ROS has been initialized
+            if (!rclcpp::ok()) {
+                RCLCPP_ERROR(node->get_logger(), "A ROS node for Gazebo has not been initialized, unable to load plugin.");
+                return;
+            }
+
+            // Check for joint element
+            if (!_sdf->HasElement("joint")) {
+                RCLCPP_ERROR(node->get_logger(), "No joint element present. MimicJointPlugin could not be loaded.");
+                return;
+            }
+
+            joint_name_ = _sdf->GetElement("joint")->Get<std::string>();
+
+            // Check for mimicJoint element
+            if (!_sdf->HasElement("mimic_joint")) {
+                RCLCPP_ERROR(node->get_logger(), "No mimicJoint element present. MimicJointPlugin could not be loaded.");
+                return;
+            }
+
+            mimic_joint_name_ = _sdf->GetElement("mimic_joint")->Get<std::string>();
+
+            // Check if PID controller wanted
+            has_pid_ = _sdf->HasElement("has_pid");
+            if (has_pid_) {
+                std::string name = _sdf->GetElement("has_pid")->Get<std::string>();
+                if (name.empty()) {
+                    name = "gazebo_ros_control/pid_gains/" + mimic_joint_name_;
+                }
+                auto nh = node->create_sub_node(name);
+                pid_ = std::make_shared<control_toolbox::PidROS>(nh);
+            }
+
+            // Check for multiplier element
+            multiplier_ = 1.0;
+            if (_sdf->HasElement("multiplier"))
+                multiplier_ = _sdf->GetElement("multiplier")->Get<double>();
+
+            // Check for offset element
+            offset_ = 0.0;
+            if (_sdf->HasElement("offset"))
+                offset_ = _sdf->GetElement("offset")->Get<double>();
+
+            // Check for sensitiveness element
+            sensitiveness_ = 0.0;
+            if (_sdf->HasElement("sensitiveness"))
+                sensitiveness_ = _sdf->GetElement("sensitiveness")->Get<double>();
+
+            // Get pointers to joints
+            joint_ = model_->GetJoint(joint_name_);
+            if (!joint_) {
+                RCLCPP_ERROR_STREAM(node->get_logger(), "No joint named \"" << joint_name_ << "\". MimicJointPlugin could not be loaded.");
+                return;
+            }
+            mimic_joint_ = model_->GetJoint(mimic_joint_name_);
+            if (!mimic_joint_) {
+                RCLCPP_ERROR_STREAM(node->get_logger(), "No (mimic) joint named \"" << mimic_joint_name_ << "\". MimicJointPlugin could not be loaded.");
+                return;
+            }
+
+            // Check for max effort
+    #if GAZEBO_MAJOR_VERSION > 2
+    max_effort_ = mimic_joint_->GetEffortLimit(0);
+    #else
+            max_effort_ = mimic_joint_->GetMaxForce(0);
+    #endif
+            if (_sdf->HasElement("max_effort")) {
+                max_effort_ = _sdf->GetElement("max_effort")->Get<double>();
+            }
+
+            // Set max effort
+            if (!has_pid_) {
+    #if GAZEBO_MAJOR_VERSION > 2
+                mimic_joint_->SetParam("fmax", 0, max_effort_);
+    #else
+                mimic_joint_->SetMaxForce(0, max_effort_);
+    #endif
+            }
         }
-
-        // Check for multiplier element
-        multiplier_ = 1.0;
-        if (_sdf->HasElement("multiplier"))
-            multiplier_ = _sdf->GetElement("multiplier")->Get<double>();
-
-        // Check for offset element
-        offset_ = 0.0;
-        if (_sdf->HasElement("offset"))
-            offset_ = _sdf->GetElement("offset")->Get<double>();
-
-        // Check for sensitiveness element
-        sensitiveness_ = 0.0;
-        if (_sdf->HasElement("sensitiveness"))
-            sensitiveness_ = _sdf->GetElement("sensitiveness")->Get<double>();
-
-        // Get pointers to joints
-        joint_ = model_->GetJoint(joint_name_);
-        if (!joint_) {
-            RCLCPP_ERROR_STREAM(node->get_logger(), "No joint named \"" << joint_name_ << "\". MimicJointPlugin could not be loaded.");
+        catch(const std::exception& e) {
+            RCLCPP_ERROR(node->get_logger(), "Error while initializing plugin: %s", e.what());
             return;
-        }
-        mimic_joint_ = model_->GetJoint(mimic_joint_name_);
-        if (!mimic_joint_) {
-            RCLCPP_ERROR_STREAM(node->get_logger(), "No (mimic) joint named \"" << mimic_joint_name_ << "\". MimicJointPlugin could not be loaded.");
-            return;
-        }
-
-        // Check for max effort
-#if GAZEBO_MAJOR_VERSION > 2
-        max_effort_ = mimic_joint_->GetEffortLimit(0);
-#else
-        max_effort_ = mimic_joint_->GetMaxForce(0);
-#endif
-        if (_sdf->HasElement("max_effort")) {
-            max_effort_ = _sdf->GetElement("max_effort")->Get<double>();
-        }
-
-        // Set max effort
-        if (!has_pid_) {
-#if GAZEBO_MAJOR_VERSION > 2
-            mimic_joint_->SetParam("fmax", 0, max_effort_);
-#else
-            mimic_joint_->SetMaxForce(0, max_effort_);
-#endif
         }
 
         // Listen to the update event. This event is broadcast every
@@ -153,9 +153,9 @@ namespace gazebo {
     void MimicJointPlugin::UpdateChild()
     {
 #if GAZEBO_MAJOR_VERSION >= 8
-        static rclcpp::Duration period(world_->Physics()->GetMaxStepSize());
+        static rclcpp::Duration period = rclcpp::Duration::from_nanoseconds(world_->Physics()->GetMaxStepSize());
 #else
-        static rclcpp::Duration period(world_->GetPhysicsEngine()->GetMaxStepSize());
+        static rclcpp::Duration period = rclcpp::Duration::from_nanoseconds(world_->GetPhysicsEngine()->GetMaxStepSize());
 #endif
 
         // Set mimic joint's angle based on joint's angle
