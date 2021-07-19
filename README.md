@@ -15,7 +15,7 @@ A simple (Model) plugin for Gazebo in order to add to Gazebo the mimic joint fun
 
       A **string** specifying the name of the joint to be mimic-ed.
 
-    - mimicJoint (Required)
+    - mimic_joint (Required)
 
       A **string** specifying the name of the mimic joint.
 
@@ -27,7 +27,7 @@ A simple (Model) plugin for Gazebo in order to add to Gazebo the mimic joint fun
 
       A **double** specifying the offset parameter of the mimic joint. Defaults to 0.0.
 
-    - maxEffort
+    - max_effort
 
       A **double** specifying the max effort the mimic joint can generate. Defaults to the effort limit in the sdf model.
 
@@ -35,13 +35,13 @@ A simple (Model) plugin for Gazebo in order to add to Gazebo the mimic joint fun
 
       A **double** specifying the sensitiveness of the mimic joint. Defaults to 0.0. It basically is the threshold of the difference between the 2 angles (joint's and mimic's) before applying the "mimicness".
 
-    - robotNamespace
+    - robot_namespace
 
       A **string** specifying the namespace the robot is under. Defaults to "".
 
-    - hasPID
+    - has_pid
 
-      Determines whether the joint has PID in order to be controlled via PID position/effort controller. *\<hasPID/\>* means that the mimic joint is controlled via PID. Omit it so that the mimic joint is controlled via setAngle. Optionally, specify a value to set the pid namespace.
+      Determines whether the joint has PID in order to be controlled via PID position/effort controller. *\<has_pid/\>* means that the mimic joint is controlled via PID. Omit it so that the mimic joint is controlled via setAngle. Optionally, specify a value to set the pid namespace.
 
 DisableLinkPlugin
 -----------------
