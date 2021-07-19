@@ -61,8 +61,8 @@ namespace gazebo {
         }
 
         // Check for robot namespace
-        if (_sdf->HasElement("robotNamespace")) {
-            robot_namespace_ = _sdf->GetElement("robotNamespace")->Get<std::string>();
+        if (_sdf->HasElement("robot_namespace")) {
+            robot_namespace_ = _sdf->GetElement("robot_namespace")->Get<std::string>();
         }
         auto model_nh = rclcpp::Node::make_shared(robot_namespace_);
 
@@ -75,17 +75,17 @@ namespace gazebo {
         joint_name_ = _sdf->GetElement("joint")->Get<std::string>();
 
         // Check for mimicJoint element
-        if (!_sdf->HasElement("mimicJoint")) {
+        if (!_sdf->HasElement("mimic_joint")) {
             RCLCPP_ERROR(node->get_logger(), "No mimicJoint element present. MimicJointPlugin could not be loaded.");
             return;
         }
 
-        mimic_joint_name_ = _sdf->GetElement("mimicJoint")->Get<std::string>();
+        mimic_joint_name_ = _sdf->GetElement("mimic_joint")->Get<std::string>();
 
         // Check if PID controller wanted
-        has_pid_ = _sdf->HasElement("hasPID");
+        has_pid_ = _sdf->HasElement("has_pid");
         if (has_pid_) {
-            std::string name = _sdf->GetElement("hasPID")->Get<std::string>();
+            std::string name = _sdf->GetElement("has_pid")->Get<std::string>();
             if (name.empty()) {
                 name = "gazebo_ros_control/pid_gains/" + mimic_joint_name_;
             }
@@ -126,8 +126,8 @@ namespace gazebo {
 #else
         max_effort_ = mimic_joint_->GetMaxForce(0);
 #endif
-        if (_sdf->HasElement("maxEffort")) {
-            max_effort_ = _sdf->GetElement("maxEffort")->Get<double>();
+        if (_sdf->HasElement("max_effort")) {
+            max_effort_ = _sdf->GetElement("max_effort")->Get<double>();
         }
 
         // Set max effort
