@@ -6,7 +6,9 @@ find_package(control_toolbox REQUIRED)
 find_package(gazebo_dev REQUIRED)
 find_package(gazebo_ros REQUIRED)
 
-set(CMAKE_CXX_STANDARD 14)
+if(NOT CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 17)
+endif()
 
 include_directories(
         include
