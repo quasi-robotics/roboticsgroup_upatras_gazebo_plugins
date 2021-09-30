@@ -117,9 +117,9 @@ namespace gazebo {
 
             // Check for max effort
     #if GAZEBO_MAJOR_VERSION > 2
-    max_effort_ = mimic_joint_->GetEffortLimit(0);
+            max_effort_ = joint_->GetEffortLimit(0);
     #else
-            max_effort_ = mimic_joint_->GetMaxForce(0);
+            max_effort_ = joint_->GetMaxForce(0);
     #endif
             if (_sdf->HasElement("max_effort")) {
                 max_effort_ = _sdf->GetElement("max_effort")->Get<double>();
@@ -128,7 +128,7 @@ namespace gazebo {
             // Set max effort
             if (!has_pid_) {
     #if GAZEBO_MAJOR_VERSION > 2
-                mimic_joint_->SetParam("fmax", 0, max_effort_);
+                mimic_joint_->SetEffortLimit(0, max_effort_);
     #else
                 mimic_joint_->SetMaxForce(0, max_effort_);
     #endif
