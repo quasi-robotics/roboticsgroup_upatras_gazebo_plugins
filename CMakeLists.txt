@@ -3,6 +3,7 @@ project(roboticsgroup_upatras_gazebo_plugins)
 
 find_package(ament_cmake REQUIRED)
 find_package(control_toolbox REQUIRED)
+find_package(control_msgs REQUIRED)
 find_package(gazebo_dev REQUIRED)
 find_package(gazebo_ros REQUIRED)
 
@@ -26,6 +27,7 @@ ament_target_dependencies(roboticsgroup_upatras_gazebo_mimic_joint_plugin
         gazebo_ros
         rclcpp
         control_toolbox
+        control_msgs
         )
 ament_export_libraries(roboticsgroup_upatras_gazebo_mimic_joint_plugin)
 
